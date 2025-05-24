@@ -1,9 +1,10 @@
 "use client";
-import ShowcaseInsights, { DataItem } from '@/components/ui/ShowcaseInsights';
+import ShowcaseInsights from '@/components/ui/ShowcaseInsights';
 import React, { useState } from 'react';
 const apiKey = process.env.NEXT_PUBLIC_CRUX_API_KEY;
 import { Button } from "@/components/ui/button";
 import { Input } from '@/components/ui/input';
+import { DataItem } from '@/types/webVitals';
 
 export default function UXPage() {
   const [url, setUrl] = useState('');

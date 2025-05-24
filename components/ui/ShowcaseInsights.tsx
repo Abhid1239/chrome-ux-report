@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 import {
     Table,
     TableBody,
@@ -6,122 +6,118 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from "@/components/ui/tooltip";
+import { ArrowUpDown, ChevronDown } from 'lucide-react';
+import {
+    DropdownMenu,
+    DropdownMenuCheckboxItem,
+    DropdownMenuContent,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from './button';
 
-interface MetricPercentiles {
-    p75: number;
-}
+// Import constants, types, and utils from refactored files
+import { CORE_WEB_VITALS } from '../../constants/coreWebVitals';
+import { ShowcaseInsightsProps, CoreWebVital, WebVitalColumn, SortPosition } from '../../types/webVitals';
+import { getBgClass } from '../../utils/webVitalsUtils';
 
-interface Metrics {
-    [key: string]: {
-        percentiles: MetricPercentiles;
-    };
-}
+// ShowcaseInsights component
+const ShowcaseInsights = ({ data }: ShowcaseInsightsProps) => {
+    const [dataStores, setDataStores] = useState<Record<string, number | string>[]>(() => {
+        const urls = data.map(d => d.url);
+        return urls.map((url, i) => {
+            const obj: Record<string, number | string> = { website_name: url };
+            CORE_WEB_VITALS.forEach(({ key }) => {
+                const val = data[i].data?.record.metrics[key]?.percentiles.p75;
+                obj[key] = typeof val === "number" ? val : Number(val) || 0;
+            });
+            return obj;
+        });
+    });
+    const [sortPosition, setSortPosition] = useState<SortPosition | null>(null);
+    const [columns, setColumns] = useState<WebVitalColumn[]>(
+        CORE_WEB_VITALS.map((v: CoreWebVital) => ({
+            key: v.key,
+            visible: v.visible ?? false,
+            label: v.label,
+            abbr: v.abbr,
+            description: v.description
+        }))
+    );
 
-interface RecordData {
-    metrics: Metrics;
-}
-
-export interface DataItem {
-    url: string;
-    data?: {
-        record: RecordData;
-    };
-    error?: string;
-}
-
-type Props = {
-    data: DataItem[];
-}
-
-const CORE_WEB_VITALS = [
-    {
-        key: "website_name",
-        label: "Website Name"
-    },
-    {
-        key: "largest_contentful_paint",
-        abbr: "LCP",
-        label: "Largest Contentful Paint (LCP)",
-        docs: "https://web.dev/lcp/",
-        thresholds: [2500, 4000],
-        unit: "ms",
-        description: "Measures loading performance. Good: ≤2.5s, Needs Improvement: ≤4s, Poor: >4s."
-    },
-    {
-        key: "first_contentful_paint",
-        abbr: "FCP",
-        label: "First Contentful Paint (FCP)",
-        docs: "https://web.dev/fcp/",
-        thresholds: [1800, 3000],
-        unit: "ms",
-        description: "Measures time to first content. Good: ≤1.8s, Needs Improvement: ≤3s, Poor: >3s."
-    },
-    {
-        key: "interaction_to_next_paint",
-        abbr: "INP",
-        label: "Interaction to Next Paint (INP)",
-        docs: "https://web.dev/inp/",
-        thresholds: [200, 500],
-        unit: "ms",
-        description: "Measures responsiveness. Good: ≤200ms, Needs Improvement: ≤500ms, Poor: >500ms."
-    },
-    {
-        key: "cumulative_layout_shift",
-        abbr: "CLS",
-        label: "Cumulative Layout Shift (CLS)",
-        docs: "https://web.dev/cls/",
-        thresholds: [0.1, 0.25],
-        unit: "",
-        description: "Measures visual stability. Good: ≤0.1, Needs Improvement: ≤0.25, Poor: >0.25."
-    },
-    {
-        key: "experimental_time_to_first_byte",
-        abbr: "TTFB",
-        label: "Time to First Byte (TTFB)",
-        docs: "https://web.dev/ttfb/",
-        thresholds: [800, 1800],
-        unit: "ms",
-        description: "Measures server response. Good: ≤0.8s, Needs Improvement: ≤1.8s, Poor: >1.8s."
-    }
-];
-
-
-
-const ShowcaseInsights = ({ data }: Props) => {
-    const [dataStores] = useState(() => {
-        return CORE_WEB_VITALS.map((vital) => {
-            if (vital.key === "website_name") {
+    const handleSort = (key: string) => {
+        setSortPosition((prev) => {
+            if (prev?.key === key) {
                 return {
-                    ...vital,
-                    values: data.map(d => d.url)
-                };
-            } else {
-                return {
-                    ...vital,
-                    values: data.map(d => d.data?.record.metrics[vital.key].percentiles.p75)
-                };
+                    key,
+                    direction: prev.direction === "asc" ? "desc" : "asc"
+                }
             }
-        })
-    })
+            return { key, direction: "asc" };
+        });
+        setDataStores((prev) => {
+            const sorted = [...prev].sort((a, b) => {
+                const valA = Number(a[key]);
+                const valB = Number(b[key]);
+                if (sortPosition?.direction === "asc") {
+                    return valA - valB;
+                } else {
+                    return valB - valA;
+                }
+            });
+            return sorted;
+        });
+    }
+
+    const handleColumnVisbility = (key: string) => {
+        setColumns(prev => prev.map((column) => ({
+            ...column,
+            visible: column.key === key ? !column.visible : column.visible
+        })))
+    }
+
+
     return (
         <div className="w-full max-w-5xl mx-auto mt-4">
             <h2 className="text-xl font-bold mb-2 text-center">Core Web Vitals Insights</h2>
             <div className="text-muted-foreground text-sm mb-4 text-center truncate">URLs: {data.map(d => d.url).join(", ")}</div>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="ml-auto">
+                        Columns <ChevronDown />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                    {columns
+                        .map((column) => {
+                            return (
+                                // TODO: Need to handle this bug in shadcdn components where if we give key and data different the styles dont get applied
+                                <DropdownMenuCheckboxItem
+                                    key={column.label}
+                                    className="capitalize"
+                                    checked={column.visible}
+                                    onCheckedChange={() => handleColumnVisbility(column.key)}
+                                >
+                                    {column.label}
+                                </DropdownMenuCheckboxItem>
+                            )
+                        })}
+                </DropdownMenuContent>
+            </DropdownMenu>
             <div className="overflow-x-auto">
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            {dataStores.map((vital) => (
-                                vital.key === "website_name"
-                                    ? <TableHead key={vital.key}>{vital.label}</TableHead>
-                                    : <TableHead key={vital.key} className="relative group cursor-pointer">
+                            <TableHead key="website_name">Website</TableHead>
+                            {columns.map((vital) => (
+                                <TableHead key={vital.key} className={"relative group cursor-pointer" + (vital.visible ? '' : ' hidden')}>
+                                    <div className="flex justify-end items-center">
                                         <TooltipProvider>
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
@@ -132,22 +128,50 @@ const ShowcaseInsights = ({ data }: Props) => {
                                                 </TooltipContent>
                                             </Tooltip>
                                         </TooltipProvider>
-                                    </TableHead>
+                                        <ArrowUpDown className={(sortPosition?.key === vital.key ? sortPosition.direction === 'asc' ? 'text-green-500' : 'text-red-500' : '') + ' size-4 ml-2 cursor-pointer'} onClick={() => handleSort(vital.key)} />
+                                    </div>
+                                </TableHead>
                             ))}
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {data.map((d, i) => (
+                        {dataStores.map((row, i) => (
                             <TableRow key={i}>
-                                {dataStores.map((vital) => (
-                                    <TableCell key={vital.values[i]}>{vital.values[i]}</TableCell>
-                                ))}
+                                <TableCell>{row.website_name}</TableCell>
+                                {columns.map((vital) => {
+                                    const value = Number(row[vital.key]);
+                                    return (
+                                        <TableCell
+                                            key={vital.key}
+                                            className={vital.visible ? `text-right ${getBgClass(vital.key, value)}` : 'hidden'}
+                                        >
+                                            {row[vital.key]}
+                                        </TableCell>
+                                    );
+                                })}
                             </TableRow>
                         ))}
+                        <TableRow className="bg-muted">
+                            <TableCell>Avg</TableCell>
+                            {columns.map((vital) => {
+                                const values = dataStores.map(row => Number(row[vital.key]));
+                                const avg = values.reduce((a, b) => a + b, 0) / values.length;
+                                return <TableCell className={vital.visible ? 'text-right' : 'hidden'} key={vital.key}>{avg.toFixed(2)}</TableCell>;
+                            })}
+                        </TableRow>
+                        <TableRow className="bg-muted">
+                            <TableCell>Sum</TableCell>
+                            {columns.map((vital) => {
+                                const values = dataStores.map(row => Number(row[vital.key]));
+                                const sum = values.reduce((a, b) => a + b, 0);
+                                return <TableCell className={vital.visible ? 'text-right' : 'hidden'} key={vital.key}>{sum.toFixed(2)}</TableCell>;
+                            })}
+                        </TableRow>
                     </TableBody>
                 </Table>
             </div>
-        </div >)
+        </div >
+    )
 }
 
 export default ShowcaseInsights
