@@ -1,5 +1,5 @@
 "use client";
-import ShowcaseInsights from '@/components/ui/ShowcaseInsights';
+import ShowcaseInsights, { DataItem } from '@/components/ui/ShowcaseInsights';
 import React, { useState } from 'react';
 const apiKey = process.env.NEXT_PUBLIC_CRUX_API_KEY;
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ export default function UXPage() {
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<DataItem[] | null>(null);
 
   const handleSearch = async () => {
     setLoading(true);
@@ -33,8 +33,8 @@ export default function UXPage() {
           return { url, error: result.error.message ?? "Unknown error" }
         }
         return { url, data: result };
-      } catch (e: any) {
-        return { url, error: e.message || "Unknown error" }
+      } catch (e: unknown) {
+        return { url, error: e instanceof Error ? e.message : "Unknown error" }
       }
     }));
     if (results.some((r) => r.error)) {

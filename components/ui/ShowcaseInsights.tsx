@@ -13,9 +13,33 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip"
-type Props = {
-    data: any
+
+interface MetricPercentiles {
+    p75: number;
 }
+
+interface Metrics {
+    [key: string]: {
+        percentiles: MetricPercentiles;
+    };
+}
+
+interface RecordData {
+    metrics: Metrics;
+}
+
+export interface DataItem {
+    url: string;
+    data?: {
+        record: RecordData;
+    };
+    error?: string;
+}
+
+type Props = {
+    data: DataItem[];
+}
+
 const CORE_WEB_VITALS = [
     {
         key: "website_name",
@@ -71,8 +95,8 @@ const CORE_WEB_VITALS = [
 
 
 const ShowcaseInsights = ({ data }: Props) => {
-    const [dataStores, setDataStore] = useState(() => {
-        return CORE_WEB_VITALS.map((vital, i) => {
+    const [dataStores] = useState(() => {
+        return CORE_WEB_VITALS.map((vital) => {
             if (vital.key === "website_name") {
                 return {
                     ...vital,
@@ -81,7 +105,7 @@ const ShowcaseInsights = ({ data }: Props) => {
             } else {
                 return {
                     ...vital,
-                    values: data.map(d => d.data.record.metrics[vital.key].percentiles.p75)
+                    values: data.map(d => d.data?.record.metrics[vital.key].percentiles.p75)
                 };
             }
         })
@@ -115,7 +139,7 @@ const ShowcaseInsights = ({ data }: Props) => {
                     <TableBody>
                         {data.map((d, i) => (
                             <TableRow key={i}>
-                                {dataStores.map((vital, index) => (
+                                {dataStores.map((vital) => (
                                     <TableCell key={vital.values[i]}>{vital.values[i]}</TableCell>
                                 ))}
                             </TableRow>
