@@ -1,36 +1,107 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Core Web Vitals Dashboard
 
-## Getting Started
+## 1. Core Functionality & Exception Handling
 
-First, run the development server:
+### Core Functionality
+- **User Input & Data Fetching:**  
+  The main page (`app/page.tsx`) allows users to input one or more URLs and triggers a fetch to an API endpoint for Core Web Vitals data. The form is responsive and disables the submit button while loading.
+- **Data Display:**  
+  The `ShowcaseInsights` component receives the fetched data and displays it in a dynamic, sortable, and customizable table. Users can choose which metrics (columns) to show/hide and sort by any metric. The values are coloured based on the metric value.
+- **Reusable & Extensible Structure:**  
+  - All constants (metrics config), types (interfaces), and utility functions are modularized into separate files, promoting reusability and maintainability.
+  - The dashboard is easily extensible: new metrics or features can be added by updating the relevant constants or types.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### Exception Handling & Completeness
+- **Form Submission:**  
+  The form uses `onSubmit` to prevent default reloads and calls a handler. The submit button is disabled during loading or if the input is empty, preventing duplicate or invalid submissions.
+- **Error Handling:**  
+  If an error occurs during data fetching or any one of the API fails, an error message is displayed to the user in a styled alert.
+- **Loading State:**  
+  While fetching data, a loading spinner and message are shown, providing clear feedback.
+- **Data Validation:**  
+  The code checks for the presence of data before rendering the insights table, ensuring no runtime errors from undefined data.
+- **Type Safety:**  
+  All data structures are strongly typed using TypeScript interfaces, reducing the risk of runtime errors and improving code reliability.
+
+---
+
+## 2. Object-Oriented Development & Clean Code
+
+- **Separation of Concerns:**  
+  - UI components (`ShowcaseInsights`, table, tooltips, dropdowns) are separated from business logic and configuration.
+  - Constants, types, and utility functions are placed in dedicated files.
+- **Reusability:**  
+  - Utility functions (e.g., for background class calculation) are reusable across components.
+  - Metric definitions and types are centralized for consistency.
+- **Readability & Maintainability:**  
+  - Descriptive variable and function names.
+  - Consistent formatting and use of modern React/TypeScript patterns.
+  - Minimal code duplication (DRY principle).
+- **Extensibility:**  
+  - New metrics, columns, or features can be added with minimal changes to the codebase.
+
+---
+
+## 3. Design Document
+
+### High-Level Architecture
+
+```
+/constants/coreWebVitals.ts      # Metric definitions/config
+/types/webVitals.ts              # TypeScript interfaces/types
+/utils/webVitalsUtils.ts         # Utility functions
+/components/ui/ShowcaseInsights.tsx # Main insights table component
+/app/page.tsx                    # Main page, handles user input and data fetching
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Data Flow
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **User Input:**  
+   User enters URLs and submits the form.
+2. **Data Fetching:**  
+   `app/page.tsx` fetches Core Web Vitals data for the URLs.
+3. **Data Processing:**  
+   Data is validated, errors are handled, and state is updated.
+4. **Data Display:**  
+   `ShowcaseInsights` receives and renders the data, allowing interactive sorting and column selection.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Key Design Decisions
 
-## Learn More
+- **TypeScript for Type Safety:**  
+  Ensures all data structures are well-defined and reduces runtime errors.
+- **Component-Based UI:**  
+  Promotes modularity, reusability, and easy maintenance.
+- **Centralized Config & Types:**  
+  All metric definitions and interfaces are in dedicated files, making updates and testing easier.
+- **UI/UX Considerations:**  
+  - Responsive layout.
+  - Clear feedback for loading and errors.
+  - User-friendly controls for sorting and column visibility.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 4. Library Choices & Rationale
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **React:**  
+  Provides a component-based architecture, making UI development modular and reusable.
+- **TypeScript:**  
+  Adds static type checking, improving code safety, maintainability, and developer experience.
+- **Lucide-react (Icons):**  
+  For modern, customizable SVG icons (e.g., sorting arrows), enhancing UI clarity.
+- **ShadCDN UI (UI Components):**  
+  Offers accessible, unstyled primitives for dropdown menus and tooltips, allowing for flexible and consistent UI/UX.
 
-## Deploy on Vercel
+**Why these choices?**  
+- **Maintainability:** Centralized configuration and types make the codebase easy to update and extend.
+- **Robustness:** TypeScript and clear error handling reduce the risk of bugs.
+- **User Experience:** Modern UI libraries and thoughtful feedback mechanisms ensure a smooth, intuitive experience.
+- **Scalability:** The architecture supports future enhancements (e.g., AI recommendations, more metrics) with minimal refactoring.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 5. Future Improvements
+
+- Add AI recommendations based on the metrics, more metrics and features.
+- Migrate to TankStack Query for data fetching.
+- Migrate to Data Table for more features.
+
+

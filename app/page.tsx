@@ -31,15 +31,20 @@ export default function UXPage() {
         const result = await response.json();
 
         if (!response.ok) {
+          console.log(result);
           return { url, error: result.error.message ?? "Unknown error" }
         }
         return { url, data: result };
       } catch (e: unknown) {
+        console.log(e);
         return { url, error: e instanceof Error ? e.message : "Unknown error" }
       }
     }));
     if (results.some((r) => r.error)) {
-      setError(results.find((r) => r.error)?.error || "Unknown error");
+      console.log(results);
+      const errorData = results.find((r) => r.error);
+      console.log(errorData);
+      setError((errorData?.error || "Unknown error ") + (errorData?.url ? " for URL: " + errorData.url : ''));
     }
     else {
       setData(results);

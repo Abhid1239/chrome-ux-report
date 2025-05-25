@@ -1,7 +1,9 @@
 import type { Config } from "tailwindcss";
 import tailwindcssAnimate from "tailwindcss-animate";
+import colors from "tailwindcss/colors";
 
 export default {
+  safelist: ["bg-red-100", "bg-yellow-100", "bg-green-100"],
   darkMode: ["class"],
   content: [
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -11,6 +13,7 @@ export default {
   theme: {
     extend: {
       colors: {
+        ...colors,
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
